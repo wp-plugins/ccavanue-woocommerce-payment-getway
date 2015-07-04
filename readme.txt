@@ -1,6 +1,6 @@
 === Plugin Name ===
 Contributors: Nilesh Chouraisa
-Tags: WooCommerce, Payment Gateway, CCAvenue
+Tags: WooCommerce, Payment Gateway, CCAvenue, ccavenue payment gateway, gateway for woocommerce, the woocommerce plugin woocommerce allows use ccavenue payment, payment gateway with secure online payment gateway, Indian payment gateway, Card payment woocommerce, pay with Credit Card / Debit Card / Internet Banking
 Requires at least: 2.0.1.3
 Tested up to: 4.2.2
 Stable tag: 4.0.3
@@ -25,6 +25,9 @@ It is hard to continue development and support for this free plugin without cont
 == Frequently Asked Questions ==
 
 Do you have questions or issues with CCAvenue payment gateway? mail us on neelesh.chourasia@yahoo.co.in
+
+= Docs & Support =
+You can mail me your query on [neelesh.chourasia@yahoo.co.in] and I will get back to your with your answers.
 
 == Screenshots ==
 1. WooCommerce payment gateway setting page
