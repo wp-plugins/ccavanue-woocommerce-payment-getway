@@ -31,7 +31,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
             $this -> icon         =  plugins_url( 'images/logo.png' , __FILE__ );
             $this -> has_fields   = true;
             
-            $this -> ccav_init_form_fields();
+            $this -> init_form_fields();
             $this -> init_settings();
 
             $this -> title            = $this -> settings['title'];
@@ -40,8 +40,6 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
             $this -> working_key      = $this -> settings['working_key'];
             $this -> access_code      = $this -> settings['access_code'];
 			$this -> sandbox      	  = $this -> settings['sandbox'];
-			$this -> iframemode       = $this -> settings['iframemode'];
-			$this -> hideccavenuelogo = $this -> settings['hideccavenuelogo'];
 			$this -> enable_currency_conversion      = $this -> settings['enable_currency_conversion'];
 			
 			$this -> default_add1 = $this -> settings['default_add1'];
@@ -51,11 +49,6 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 			$this -> default_zip = $this -> settings['default_zip'];
 			$this -> default_phone = $this -> settings['default_phone'];
 			
-			if($this -> hideccavenuelogo=='yes')
-			{
-				$this -> icon = '';	
-			}
-
 			if($this -> sandbox=='yes')
 			{
 				 $this -> liveurlonly = "https://test.ccavenue.com/transaction/transaction.do";
@@ -79,18 +72,18 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 			$this -> cvv_number 	= sanitize_text_field($_POST['cvv_number']);
 			$this -> issuing_bank 	= sanitize_text_field($_POST['issuing_bank']);
 			
-            add_action( 'woocommerce_api_wc_nilesh_ccave', array( $this, 'ccav_check_ccavenue_response' ) );
+            add_action( 'woocommerce_api_wc_nilesh_ccave', array( $this, 'check_ccavenue_response' ) );
             add_action('valid-ccavenue-request', array($this, 'successful_request'));
             if ( version_compare( WOOCOMMERCE_VERSION, '2.0.0', '>=' ) ) {
                 add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
             } else {
                 add_action( 'woocommerce_update_options_payment_gateways', array( &$this, 'process_admin_options' ) );
             }
-            add_action('woocommerce_receipt_ccavenue', array($this, 'ccav_receipt_page'));
+            add_action('woocommerce_receipt_ccavenue', array($this, 'receipt_page'));
             add_action('woocommerce_thankyou_ccavenue',array($this, 'thankyou_page'));
         }
 
-        function ccav_init_form_fields(){
+        function init_form_fields(){
 			$countries = array("Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia and Herzegowina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo", "Congo, the Democratic Republic of the", "Cook Islands", "Costa Rica", "Cote d'Ivoire", "Croatia (Hrvatska)", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "East Timor", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Falkland Islands (Malvinas)", "Faroe Islands", "Fiji", "Finland", "France", "France Metropolitan", "French Guiana", "French Polynesia", "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Heard and Mc Donald Islands", "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran (Islamic Republic of)", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, Democratic People's Republic of", "Korea, Republic of", "Kuwait", "Kyrgyzstan", "Lao, People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libyan Arab Jamahiriya", "Liechtenstein", "Lithuania", "Luxembourg", "Macau", "Macedonia, The Former Yugoslav Republic of", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico", "Micronesia, Federated States of", "Moldova, Republic of", "Monaco", "Mongolia", "Montserrat", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "Netherlands Antilles", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", "Northern Mariana Islands", "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico", "Qatar", "Reunion", "Romania", "Russian Federation", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Seychelles", "Sierra Leone", "Singapore", "Slovakia (Slovak Republic)", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", "Spain", "Sri Lanka", "St. Helena", "St. Pierre and Miquelon", "Sudan", "Suriname", "Svalbard and Jan Mayen Islands", "Swaziland", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan, Province of China", "Tajikistan", "Tanzania, United Republic of", "Thailand", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Virgin Islands (British)", "Virgin Islands (U.S.)", "Wallis and Futuna Islands", "Western Sahara", "Yemen", "Yugoslavia", "Zambia", "Zimbabwe");
 			
             $this -> form_fields = array(
@@ -176,7 +169,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
          * - Options for bits like 'title' and availability on a country-by-country basis
          **/
 		 
-        public function ccav_admin_options(){
+        public function admin_options(){
             echo '<h3>'.__('CCAvenue Payment Gateway', 'nilesh').'</h3>';
             echo '<p>'.__('CCAvenue is most popular payment gateway for online shopping in India').'</p>';
             echo '<table class="form-table">';
@@ -187,21 +180,21 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
         /**
          *  There are no payment fields for CCAvenue, but we want to show the description if set.
          **/
-        function ccav_payment_fields(){
+        function payment_fields(){
             if($this -> description) echo wpautop(wptexturize($this -> description));
         }
         /**
          * Receipt Page
          **/
-        function ccav_receipt_page($order){
+        function receipt_page($order){
 
             echo '<p>'.__('Thank you for your order, please click the button below to pay with CCAvenue.', 'nilesh').'</p>';
-            echo $this -> ccav_generate_ccavenue_form($order);
+            echo $this -> generate_ccavenue_form($order);
         }
         /**
          * Process the payment and return the result
          **/
-        function ccav_process_payment($order_id){
+        function process_payment($order_id){
             $order = new WC_Order($order_id);
 			update_post_meta($order_id,'_post_data',$_POST);
 			return array('result' => 'success', 'redirect' => $order->get_checkout_payment_url( true ));
@@ -209,7 +202,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
         /**
          * Check for valid CCAvenue server callback
          **/
-        function ccav_check_ccavenue_response(){
+        function check_ccavenue_response(){
             global $woocommerce;
 
             $msg['class']   = 'error';
@@ -218,7 +211,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
             if(isset($_REQUEST['encResp'])){
 
                 $encResponse = $_REQUEST["encResp"];         
-                $rcvdString  = ccav_decrypt($encResponse,$this -> working_key);      
+                $rcvdString  = nilesh_decrypt($encResponse,$this -> working_key);      
                 
                 $decryptValues = array();
 
@@ -310,7 +303,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
         /**
          * Generate CCAvenue button link
          **/
-        public function ccav_generate_ccavenue_form($order_id){
+        public function generate_ccavenue_form($order_id){
             global $woocommerce;
             $order = new WC_Order($order_id);
             $order_id = $order_id.'_'.date("ymds");
@@ -391,7 +384,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 			$merchant_data   = implode('&', $paramsJoined);
 
 			//echo $merchant_data;
-			$encrypted_data = ccav_encrypt($merchant_data, $this -> working_key);
+			$encrypted_data = nilesh_encrypt($merchant_data, $this -> working_key);
 
 			$form = '';
 					wc_enqueue_js( '
@@ -438,8 +431,8 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 }
 
 // get all pages
-function ccav_get_pages($title = false, $indent = true) {
-    $wp_pages = ccav_get_pages('sort_column=menu_order');
+function get_pages($title = false, $indent = true) {
+    $wp_pages = get_pages('sort_column=menu_order');
     $page_list = array();
     if ($title) $page_list[] = $title;
     foreach ($wp_pages as $page) {
@@ -464,26 +457,26 @@ function ccav_get_pages($title = false, $indent = true) {
     /**
      * Add the Gateway to WooCommerce
      **/
-    function ccav_woocommerce_add_nilesh_ccave_gateway($methods) {
+    function woocommerce_add_nilesh_ccave_gateway($methods) {
         $methods[] = 'WC_Nilesh_Ccave';
 		
         return $methods;
     }
 
-    add_filter('woocommerce_payment_gateways', 'ccav_woocommerce_add_nilesh_ccave_gateway' );
+    add_filter('woocommerce_payment_gateways', 'woocommerce_add_nilesh_ccave_gateway' );
 }
 
 /*
 ccavenue functions
  */
 
-function ccav_encrypt($plainText,$key)
+function nilesh_encrypt($plainText,$key)
 {
-    $secretKey = ccav_hextobin(md5($key));
+    $secretKey = nilesh_hextobin(md5($key));
     $initVector = pack("C*", 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f);
     $openMode = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '','cbc', '');
     $blockSize = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, 'cbc');
-    $plainPad = ccav_pkcs5_pad($plainText, $blockSize);
+    $plainPad = nilesh_pkcs5_pad($plainText, $blockSize);
     if (mcrypt_generic_init($openMode, $secretKey, $initVector) != -1) 
     {
       $encryptedText = mcrypt_generic($openMode, $plainPad);
@@ -493,11 +486,11 @@ function ccav_encrypt($plainText,$key)
   return bin2hex($encryptedText);
 }
 
-function ccav_decrypt($encryptedText,$key)
+function nilesh_decrypt($encryptedText,$key)
 {
-    $secretKey = ccav_hextobin(md5($key));
+    $secretKey = nilesh_hextobin(md5($key));
     $initVector = pack("C*", 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f);
-    $encryptedText=ccav_hextobin($encryptedText);
+    $encryptedText=nilesh_hextobin($encryptedText);
     $openMode = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '','cbc', '');
     mcrypt_generic_init($openMode, $secretKey, $initVector);
     $decryptedText = mdecrypt_generic($openMode, $encryptedText);
@@ -508,7 +501,7 @@ function ccav_decrypt($encryptedText,$key)
 }
     //*********** Padding Function *********************
 
-function ccav_pkcs5_pad ($plainText, $blockSize)
+function nilesh_pkcs5_pad ($plainText, $blockSize)
 {
     $pad = $blockSize - (strlen($plainText) % $blockSize);
     return $plainText . str_repeat(chr($pad), $pad);
@@ -516,7 +509,7 @@ function ccav_pkcs5_pad ($plainText, $blockSize)
 
     //********** Hexadecimal to Binary function for php 4.0 version ********
 
-function ccav_hextobin($hexString) 
+function nilesh_hextobin($hexString) 
 { 
     $length = strlen($hexString); 
     $binString="";   
@@ -538,7 +531,7 @@ function ccav_hextobin($hexString)
     } 
     return $binString; 
 } 
-function ccav_debug($what){
+function nilesh_debug($what){
     echo '<pre>';
     print_r($what);
     echo '</pre>';
