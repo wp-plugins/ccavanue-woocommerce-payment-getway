@@ -49,4 +49,4 @@ This is first relese.
 = 1.0 =
 * First Public Release.
 = 1.1 =
-* Issue fix in checkout.
+* Fix currency conversion issue.

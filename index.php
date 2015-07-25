@@ -3,7 +3,7 @@
 Plugin Name: CCAvenue Payment Gateway for WooCommerce
 Plugin URI: 
 Description: WooCommerce with ccavenue Indian payment gateway.
-Version: 1.0
+Version: 1.1
 Author: Nilesh Chourasia
 Author URI: 
 
@@ -103,6 +103,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
                     'title' => __('Currency Conversion to INR?', 'nilesh'),
                     'type' => 'checkbox',
                     'label' => __('Enable Currency Conversion to INR.', 'nilesh'),
+					'description'=> __('converted to equivalent amount in INR for faster payment processing'),
                     'default' => 'no'),
 				 
                 'title' => array(
@@ -300,6 +301,28 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
        function showMessage($content){
             return '<div class="box '.$this -> msg['class'].'-box">'.$this -> msg['message'].'</div>'.$content;
         }*/
+		/*currency convertor API*/
+		function currency_convert($currency_from,$currency_to,$currency_input)
+		{
+			if ($currency_from != $currency_to)
+			{
+				$yql_base_url = "http://query.yahooapis.com/v1/public/yql";
+				$yql_query = 'select * from yahoo.finance.xchange where pair in ("'.$currency_from.$currency_to.'")';
+				$yql_query_url = $yql_base_url . "?q=" . urlencode($yql_query);
+				$yql_query_url .= "&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
+				$yql_session = curl_init($yql_query_url);
+				curl_setopt($yql_session, CURLOPT_RETURNTRANSFER,true);
+				$yqlexec = curl_exec($yql_session);
+				$yql_json =  json_decode($yqlexec,true);
+				$currency_output = (float) $currency_input*$yql_json['query']['results']['rate']['Rate'];
+		
+				return $currency_output;
+			}
+			else
+			{
+				return $currency_input;
+			}
+		}
         /**
          * Generate CCAvenue button link
          **/
@@ -333,15 +356,8 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 			$the_order_total = $order->order_total;
 			if($this->enable_currency_conversion=='yes')
 			{
-				if($the_currency!='INR' && class_exists('WC_Aelia_CurrencySwitcher')){
-					$all_currency = WC_Aelia_CurrencySwitcher::settings()->get_enabled_currencies();
-					if(in_array('INR',$all_currency)){
-						$the_order_total = WC_Aelia_CurrencySwitcher::instance()->convert($the_order_total,$the_currency,'INR');
-						$the_currency = 'INR';
-						$the_display_msg = "<small> $the_currency has been converted to equivalent amount in INR for faster payment processing.</small><br />";
-					}
-					
-				}
+				$the_order_total = $this->currency_convert($the_currency, 'INR', $the_order_total);	
+				$the_display_msg = "<small> $the_currency has been converted to equivalent amount in INR for faster payment processing.</small><br />";		
 			}
 			$ccavenue_args = array(
                 'merchant_id'      => $this -> merchant_id,
@@ -377,7 +393,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 				'cvv_number' 		=> $post_data['cvv_number'],
 				'issuing_bank' 		=> $post_data['issuing_bank'],
                 );			
-			
+
 			foreach($ccavenue_args as $param => $value) {
 			 $paramsJoined[] = "$param=$value";
 			}
